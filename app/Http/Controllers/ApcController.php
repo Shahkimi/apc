@@ -13,22 +13,23 @@ use DB;
 
 class ApcController extends Controller
 {
-    public function index(){
+    public function index()
+    {
 
-		$result = Pegawai::select('pegawai.*','ptj.ptj','jawatan.jawatan','gred.gred')          
-                            ->leftjoin('ptj','ptj.id', 'pegawai.ptj_id')
-                            ->leftjoin('jawatan','jawatan.id', 'pegawai.jawatan_id')
-                            ->leftjoin('gred','gred.id', 'pegawai.gred_id');
+        $result = Pegawai::select('pegawai.*', 'ptj.ptj', 'jawatan.jawatan', 'gred.gred')
+            ->leftjoin('ptj', 'ptj.id', 'pegawai.ptj_id')
+            ->leftjoin('jawatan', 'jawatan.id', 'pegawai.jawatan_id')
+            ->leftjoin('gred', 'gred.id', 'pegawai.gred_id');
 
         $record_count = $result->count();
 
         $pegawai = $result->orderby('sesi')
-                            ->orderBy(DB::raw('ISNULL(no_kerusi), no_kerusi'), 'ASC')
-                            ->paginate(25);
+            ->orderBy(DB::raw('ISNULL(no_kerusi), no_kerusi'), 'ASC')
+            ->paginate(25);
 
         $sesi_buka = ApcController::getSesi_buka();
 
-		return view('apc.index', [
+        return view('apc.index', [
             'pegawai' => $pegawai,
             'record_count' => $record_count,
             'fnama' => "",
@@ -41,25 +42,25 @@ class ApcController extends Controller
             'fno_kerusi' => "",
             'sesi_buka' => $sesi_buka,
         ]);
-
     }
 
-    public function getSesi_buka() {
+    public function getSesi_buka()
+    {
 
-         $sesi = Sesi::where('buka',1)
-                     ->where(function ($q) {
-                            $q->where('sesi', 'PAGI')
-                              ->orWhere('sesi', 'PAGI_LEWAT');
-                               //->orWhere('sesi', 'PETANG')
-                               //->orWhere('sesi', 'PETANG_LEWAT');
-                    })
-                    ->first();
+        $sesi = Sesi::where('buka', 1)
+            ->where(function ($q) {
+                $q->where('sesi', 'PAGI')
+                    ->orWhere('sesi', 'PAGI_LEWAT');
+                //->orWhere('sesi', 'PETANG')
+                //->orWhere('sesi', 'PETANG_LEWAT');
+            })
+            ->first();
 
         return $sesi->sesi;
     }
 
     public function confirm_update($id)
-    {    
+    {
         $pegawai = Pegawai::findOrFail($id);
 
         return view('apc.sah_kehadiran', [
@@ -67,23 +68,25 @@ class ApcController extends Controller
         ]);
     }
 
-    public function sah_kehadiran($id){
+    public function sah_kehadiran($id)
+    {
 
         $ids = Auth::id();
 
-        Pegawai::where('id',$id)
+        Pegawai::where('id', $id)
             ->update([
-                'kehadiran'=>1,
-                'updated_by'=>$ids,
-                'updated_at' => date('Y-m-d G:i:s')]);
+                'kehadiran' => 1,
+                'updated_by' => $ids,
+                'updated_at' => date('Y-m-d G:i:s')
+            ]);
 
-        $pegawai = Pegawai::select('pegawai.*','ptj.ptj','jawatan.jawatan','gred.gred')          
-                            ->leftjoin('ptj','ptj.id', 'pegawai.ptj_id')
-                            ->leftjoin('jawatan','jawatan.id', 'pegawai.jawatan_id')
-                            ->leftjoin('gred','gred.id', 'pegawai.gred_id')
-                            ->where('pegawai.id', $id)
-                            ->paginate(25);
-//dd($pegawai);
+        $pegawai = Pegawai::select('pegawai.*', 'ptj.ptj', 'jawatan.jawatan', 'gred.gred')
+            ->leftjoin('ptj', 'ptj.id', 'pegawai.ptj_id')
+            ->leftjoin('jawatan', 'jawatan.id', 'pegawai.jawatan_id')
+            ->leftjoin('gred', 'gred.id', 'pegawai.gred_id')
+            ->where('pegawai.id', $id)
+            ->paginate(25);
+        //dd($pegawai);
         $sesi_buka = ApcController::getSesi_buka();
 
         return view('apc.index', [
@@ -99,14 +102,13 @@ class ApcController extends Controller
             'fno_kerusi' => "",
             'sesi_buka' => $sesi_buka,
         ]);
-
     }
 
 
-    public function create(){
+    public function create()
+    {
 
-    	return view('apc.create');
-
+        return view('apc.create');
     }
 
     public function store(Request $request)
@@ -114,27 +116,34 @@ class ApcController extends Controller
         //$id = Auth::id();
 
         $pegawai = new Pegawai();
-    
+
         $pegawai->ptj_id = request('ptj_id');
-                         
+
         $pegawai->save();
-        
-        return redirect('/apc')->with('success','Maklumat berjaya disimpan.');
-        
+
+        return redirect('/apc')->with('success', 'Maklumat berjaya disimpan.');
     }
 
     public function edit($id)
     {
-        $pegawai = Pegawai::select('pegawai.*','ptj.ptj','jawatan.jawatan','gred.gred')          
-                            ->leftjoin('ptj','ptj.id', 'pegawai.ptj_id')
-                            ->leftjoin('jawatan','jawatan.id', 'pegawai.jawatan_id')
-                            ->leftjoin('gred','gred.id', 'pegawai.gred_id')
-                            ->where('pegawai.id',$id)
-                            ->first();
+        $pegawai = Pegawai::select('pegawai.*', 'ptj.ptj', 'jawatan.jawatan', 'gred.gred')
+            ->leftJoin('ptj', 'ptj.id', 'pegawai.ptj_id')
+            ->leftJoin('jawatan', 'jawatan.id', 'pegawai.jawatan_id')
+            ->leftJoin('gred', 'gred.id', 'pegawai.gred_id')
+            ->where('pegawai.id', $id)
+            ->first();
 
-        return view('apc.edit', ['pegawai' => $pegawai]);
+        //Change this part for filter pagi lewat @ petang lewat data show at apc.edit by admin only
+        $sesi = Sesi::whereIn('sesi', ['PAGI_LEWAT', 'PETANG_LEWAT'])->get();
+
+        // Replace underscores with spaces in 'sesi' attribute
+        $sesi = $sesi->map(function ($item) {
+            $item->sesi = str_replace('_', ' ', $item->sesi);
+            return $item;
+        });
+
+        return view('apc.edit', ['pegawai' => $pegawai, 'sesi' => $sesi]);
     }
-
 
     public function update(Request $request)
     {
@@ -143,36 +152,37 @@ class ApcController extends Controller
         $kehadiran = request('kehadiran');
         $no_kerusi = request('no_kerusi');
 
-        $old =  Pegawai::where('id',$id)->first();      
+        $old =  Pegawai::where('id', $id)->first();
 
         $ids = Auth::id();
 
-        Pegawai::where('id',$id)
+        Pegawai::where('id', $id)
             ->update([
-                'sesi'=>$sesi,
-                'kehadiran'=>$kehadiran,
-                'no_kerusi'=>$no_kerusi,
-                'updated_by'=>$ids,
-                'updated_at' => date('Y-m-d G:i:s')]);
+                'sesi' => $sesi,
+                'kehadiran' => $kehadiran,
+                'no_kerusi' => $no_kerusi,
+                'updated_by' => $ids,
+                'updated_at' => date('Y-m-d G:i:s')
+            ]);
 
-echo "no_kerusi".$old->no_kerusi;
+        echo "no_kerusi" . $old->no_kerusi;
 
-        if ($sesi=="PAGI_LEWAT" && $old->no_kerusi <> $no_kerusi) {
-echo "masuk lewat pagi";
-            $no_kerusi_lewat_pagi = Sesi::where('no_last','LEWAT_PAGI')->first();
-            Sesi::where('sesi','PAGI_LEWAT')->update(["no_last"=>$no_kerusi]);
+        if ($sesi == "PAGI_LEWAT" && $old->no_kerusi <> $no_kerusi) {
+            echo "masuk lewat pagi";
+            $no_kerusi_lewat_pagi = Sesi::where('no_last', 'LEWAT_PAGI')->first();
+            Sesi::where('sesi', 'PAGI_LEWAT')->update(["no_last" => $no_kerusi]);
         }
-        if ($sesi=="LEWAT_PAGI") {
-            $no_kerusi_lewat_petang = Sesi::where('no_last','LEWAT_PETANG')->first();
+        if ($sesi == "LEWAT_PAGI") {
+            $no_kerusi_lewat_petang = Sesi::where('no_last', 'LEWAT_PETANG')->first();
         }
-echo "..selepas";
+        echo "..selepas";
 
-        $pegawai = Pegawai::select('pegawai.*','ptj.ptj','jawatan.jawatan','gred.gred')          
-                            ->leftjoin('ptj','ptj.id', 'pegawai.ptj_id')
-                            ->leftjoin('jawatan','jawatan.id', 'pegawai.jawatan_id')
-                            ->leftjoin('gred','gred.id', 'pegawai.gred_id')
-                            ->where('pegawai.id', $id)
-                            ->paginate(25);
+        $pegawai = Pegawai::select('pegawai.*', 'ptj.ptj', 'jawatan.jawatan', 'gred.gred')
+            ->leftjoin('ptj', 'ptj.id', 'pegawai.ptj_id')
+            ->leftjoin('jawatan', 'jawatan.id', 'pegawai.jawatan_id')
+            ->leftjoin('gred', 'gred.id', 'pegawai.gred_id')
+            ->where('pegawai.id', $id)
+            ->paginate(25);
 
         $sesi_buka = ApcController::getSesi_buka();
 
@@ -191,7 +201,8 @@ echo "..selepas";
         ]);
     }
 
-    public function search(){
+    public function search()
+    {
 
         $ids = Auth::id();
 
@@ -205,22 +216,21 @@ echo "..selepas";
         $no_kerusi_search = request('no_kerusi');
 
 
-       // ($no_kerusi_search=="") ? $no_kerusi_search = '%' : "";
+        // ($no_kerusi_search=="") ? $no_kerusi_search = '%' : "";
 
-      // \DB::enableQueryLog(); // Enable query log
+        // \DB::enableQueryLog(); // Enable query log
 
-        $result= Pegawai::select('pegawai.*','ptj.ptj','jawatan.jawatan','gred.gred')          
-                            ->leftjoin('ptj','ptj.id', 'pegawai.ptj_id')
-                            ->leftjoin('jawatan','jawatan.id', 'pegawai.jawatan_id')
-                            ->leftjoin('gred','gred.id', 'pegawai.gred_id')
-                            ->where('pegawai.nama','like','%'.$nama_search.'%')
-                            ->where('pegawai.nokp','like','%'.$nokp_search.'%')
-                            ->where('ptj.ptj','like','%'.$ptj_search.'%')
-                            ->where('jawatan.jawatan','like','%'.$jawatan_search.'%')
-                            ->where('pegawai.maklumbalas_kehadiran','like', $rsvp_search)
-                            ->where('pegawai.sesi',  'like', $sesi_search )
-                            ->where('pegawai.kehadiran', 'like', $kehadiran_search)
-                            ;
+        $result = Pegawai::select('pegawai.*', 'ptj.ptj', 'jawatan.jawatan', 'gred.gred')
+            ->leftjoin('ptj', 'ptj.id', 'pegawai.ptj_id')
+            ->leftjoin('jawatan', 'jawatan.id', 'pegawai.jawatan_id')
+            ->leftjoin('gred', 'gred.id', 'pegawai.gred_id')
+            ->where('pegawai.nama', 'like', '%' . $nama_search . '%')
+            ->where('pegawai.nokp', 'like', '%' . $nokp_search . '%')
+            ->where('ptj.ptj', 'like', '%' . $ptj_search . '%')
+            ->where('jawatan.jawatan', 'like', '%' . $jawatan_search . '%')
+            ->where('pegawai.maklumbalas_kehadiran', 'like', $rsvp_search)
+            ->where('pegawai.sesi',  'like', $sesi_search)
+            ->where('pegawai.kehadiran', 'like', $kehadiran_search);
 
         if ($no_kerusi_search != "") {
             $result->where('pegawai.no_kerusi', $no_kerusi_search);
@@ -229,10 +239,10 @@ echo "..selepas";
         $record_count = $result->count();
 
         $pegawai = $result->orderby('sesi')
-                            ->orderBy(DB::raw('ISNULL(no_kerusi), no_kerusi'), 'ASC')
-                            ->paginate(25);
- 
- // dd(\DB::getQueryLog()); // Show results of log
+            ->orderBy(DB::raw('ISNULL(no_kerusi), no_kerusi'), 'ASC')
+            ->paginate(25);
+
+        // dd(\DB::getQueryLog()); // Show results of log
 
         $sesi_buka = ApcController::getSesi_buka();
 
@@ -243,16 +253,15 @@ echo "..selepas";
             'fnokp' => $nokp_search,
             'fptj' => $ptj_search,
             'fjawatan' => $jawatan_search,
-             'frsvp' => $rsvp_search,
+            'frsvp' => $rsvp_search,
             'fsesi' => $sesi_search,
             'fkehadiran' => $kehadiran_search,
             'fno_kerusi' => $no_kerusi_search,
             'sesi_buka' => $sesi_buka,
         ]);
-
     }
 
-    public function getNoLewat($nama_sesi) 
+    public function getNoLewat($nama_sesi)
     {
         $sesi = Sesi::where('sesi', $nama_sesi)->pluck("no_last");
         $sesi = Sesi::where('sesi', $nama_sesi)->select("no_last")->first();
@@ -262,24 +271,23 @@ echo "..selepas";
     }
 
 
-    public function paparan(){
+    public function paparan()
+    {
 
-        $pegawai = Pegawai::select('pegawai.*','ptj.ptj','jawatan.jawatan','gred.gred')          
-                            ->leftjoin('ptj','ptj.id', 'pegawai.ptj_id')
-                            ->leftjoin('jawatan','jawatan.id', 'pegawai.jawatan_id')
-                            ->leftjoin('gred','gred.id', 'pegawai.gred_id')
-                            ->where(function ($query) {
-                                $query->where('sesi', 'PAGI')
-                                      ->orWhere('sesi', 'PAGI_LEWAT');
-                                    })
-                            ->where('kehadiran','1')
-                            ->orderby('no_kerusi')
-                            ->paginate(1);
+        $pegawai = Pegawai::select('pegawai.*', 'ptj.ptj', 'jawatan.jawatan', 'gred.gred')
+            ->leftjoin('ptj', 'ptj.id', 'pegawai.ptj_id')
+            ->leftjoin('jawatan', 'jawatan.id', 'pegawai.jawatan_id')
+            ->leftjoin('gred', 'gred.id', 'pegawai.gred_id')
+            ->where(function ($query) {
+                $query->where('sesi', 'PAGI')
+                    ->orWhere('sesi', 'PAGI_LEWAT');
+            })
+            ->where('kehadiran', '1')
+            ->orderby('no_kerusi')
+            ->paginate(1);
 
         return view('apc.paparan', [
             'pegawai' => $pegawai,
         ]);
-
     }
-
 }
